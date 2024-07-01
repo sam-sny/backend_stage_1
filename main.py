@@ -1,33 +1,17 @@
 from fastapi import FastAPI, Request, HTTPException
 import requests
-import socket
 
 app = FastAPI()
 
-def get_public_ip():
-    try:
-        response = requests.get('https://httpbin.org/ip')
-        if response.status_code == 200:
-            ip_data = response.json()
-            return ip_data['origin']
-        else:
-            return None
-    except requests.RequestException:
-        return None
-
 @app.get("/api/hello")
 async def read_root(visitor_name: str, request: Request):
-    # Get client's public IP address
-    client_ip = get_public_ip()
-    if not client_ip:
-        raise HTTPException(status_code=500, detail="Failed to retrieve client IP address")
-
+    client_ip = request.client.host
+    print(client_ip)
+    
     # Get the location from the IP address
     location_response = requests.get(f"https://ipinfo.io/{client_ip}/json?token=42737c31ba9b41")
-    if location_response.status_code != 200:
-        raise HTTPException(status_code=500, detail="Error fetching location information")
-
     location_data = location_response.json()
+    print(location_data)
     city = location_data.get("city")
 
     # Get the coordinates for the city from the weather API
